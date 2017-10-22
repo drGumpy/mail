@@ -1,4 +1,4 @@
-package wysy³ka;
+package wysyÅ‚ka;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +14,7 @@ class Device{
 	String type;
 	String producent;
 	public String toString(){
-		return type+" firmy: "+producent+" model: "+model;
+		return type+" model: "+model;
  }
 }
 
@@ -35,7 +35,13 @@ class DeviceData{
 	 String deviceSerial;
 	 String calibrationDate;
 	 public String toString(){
-		 return device+" o numerze seryjnym: "+deviceSerial+", wzorcowany: "+calibrationDate;
+		String[] date = calibrationDate.split("Ã·");
+		if(date.length==1)
+			return device+" o numerze seryjnym: "+deviceSerial+
+					", wzorcowany w dniu "+calibrationDate;
+		else
+			return device+" o numerze seryjnym: "+deviceSerial+
+					", wzorcowany w dniach "+calibrationDate;
 	 }
 }
 
@@ -46,42 +52,76 @@ class Mail{
 
 public class Find {
 	
-	private static File file= new File("C:\\Users\\Laboratorium\\Desktop\\Laboratorium.ods");
+	Find(File file){
+		this.file=file;
+	}
+	
+	private static File file= 
+			new File("C:\\Users\\Laboratorium\\Desktop\\Laboratorium.ods");
 	    
-	//Spis nie wystawionych certyfikatów wzorcowania
-	private static ArrayList<Mail> data = new ArrayList<Mail>();
+	//Spis nie wystawionych certyfikatÃ³w wzorcowania
+	private ArrayList<Mail> data = new ArrayList<Mail>();
 	        
 	//Spis danych o klientach
-	private static HashMap<String, Client> clientsData =new HashMap<String, Client>();    
+	private HashMap<String, Client> clientsData =new HashMap<String, Client>();    
 	    
-	//Spis typów wzorcowanych urz¹dzeñ
-	private static HashMap<String, Device> devicesData =new HashMap<String, Device>();
+	//Spis typÃ³w wzorcowanych urzÄ…dzeÅ„
+	private HashMap<String, Device> devicesData =new HashMap<String, Device>();
 	
-	private static String format;
-	private static String sheetName;
+	private HashMap <String, Mail> devices = new HashMap<String, Mail>();
 	
-	private static void getFormat(String now){
+	private String format;
+	private String sheetName;
+	
+	private void getFormat(String now){
 		format=GetDate.findDate(now);
 		sheetName= GetDate.sheetName();
 	}
+	
+	private void findRepeat(int d, String sheetName, Sheet sheet) throws IOException{
+		while(sheet.getValueAt(5,d)!=""){
+			String deviceSerial =sheet.getValueAt(6,d).toString();
+			if(devices.containsKey(deviceSerial)){
+				Mail order = devices.get(deviceSerial);
+				if(!order.user.name.equals(sheet.getValueAt(4,d).toString())){
+					d++;
+					continue;
+					}
+				ArrayList<DeviceData> device = order.devices;
+				int n =device.size();
+				for(int i=0; i<n; i++){
+					if(device.get(i).deviceSerial.equals(deviceSerial))
+						if(device.get(i).device.model.
+								equals(sheet.getValueAt(5,d))){
+							device.remove(i);
+							break;
+						}
+				}
+				devices.remove(deviceSerial);	
+			}
+			d++;
+		}
+		if(!sheetName.equals("Zlecenia"))
+			findRepeat(1 ,"Zlecenia",
+					SpreadSheet.createFromFile(file).getSheet("Zlecenia"));
+	}
 	    
-	//Wyszukiwanie nie wsytawionych œwiadectw - brak daty wzorcowania
-	private static void mailData() throws IOException{
+	//Wyszukiwanie nie wsytawionych Å›wiadectw - brak daty wzorcowania
+	private void mailData() throws IOException{
 		final Sheet sheet = SpreadSheet.createFromFile(file).getSheet(sheetName);
 	    int d=1;
 	    
 	    while(!GetDate.formatDate(sheet.getValueAt(2,d).toString()).equals(format)) d++;
-	    //wczytywanie zleceñ do pierwszego braku urz¹dzenia do wzorcowania
+	    //wczytywanie zleceÅ„ do pierwszego braku urzÄ…dzenia do wzorcowania
 	    while(GetDate.formatDate(sheet.getValueAt(2,d).toString()).equals(format)){
 	    	String name = sheet.getValueAt(4,d).toString();
 	    	Mail order;
+	    	boolean flag = true;
 	    	if(clientsData.containsKey(name)){
 	    		int i=0;
-	    		do{
-	    			order =data.get(i);
-	    			i++;
-	    		}while(!order.user.name.equals(name));
-	    		data.remove(i-1);
+	    		flag = false;
+	    		while(!data.get(i).user.name.equals(name)) i++;
+	    		order =data.get(i);
 	    	}else{
 	    		order = new Mail();
 	    		order.user.name=name;
@@ -95,13 +135,16 @@ public class Find {
 	    	if(!devicesData.containsKey(deviceModel))
 	    		devicesData.put(deviceModel, device.device);
 	    	order.devices.add(device);
-	    	data.add(order);
+	    	if(flag)
+	    		data.add(order);
+	    	devices.put(device.deviceSerial, order);
 	        d++;
 	    }
+	    findRepeat(d, sheetName, sheet);
 	}
 	    
-	    //poszukiwanie klientów zlecaj¹cych wzorcowanie/u¿ytkowaników urz¹dzenia
-	private static void findClientData() throws IOException{
+	    //poszukiwanie klientÃ³w zlecajÄ…cych wzorcowanie
+	private void findClientData() throws IOException{
 		final Sheet sheet = SpreadSheet.createFromFile(file).getSheet("Klienci");
 		int i=0;
 		String name;
@@ -120,9 +163,9 @@ public class Find {
 		}        
 	}
 	    
-	//wyszukiwanie danych o wzorcowanych urz¹dzeniach
-	private static void findDeviceData() throws IOException{
-		final Sheet sheet = SpreadSheet.createFromFile(file).getSheet("Urz¹dzenia");
+	//wyszukiwanie danych o wzorcowanych urzÄ…dzeniach
+	private void findDeviceData() throws IOException{
+		final Sheet sheet = SpreadSheet.createFromFile(file).getSheet("UrzÄ…dzenia");
 		int i=0;
 		String model;
 		while(sheet.getValueAt(0,i)!=""){
@@ -138,14 +181,14 @@ public class Find {
 		}
 	}
 	
-	private static void gatherDevice(ArrayList<DeviceData> devices){
+	private void gatherDevice(ArrayList<DeviceData> devices){
 		for(int i=0; i<devices.size();i++){
 			String name= devices.get(i).device.model;
 			devices.get(i).device=devicesData.get(name);
 		}
 	}
 	
-	private static void gather(){
+	private void gather(){
 		for(int i=0; i<data.size();i++){
 			String name= data.get(i).user.name;
 			data.get(i).user=clientsData.get(name);
@@ -153,7 +196,7 @@ public class Find {
 		}
 	}
 	
-	static ArrayList<Mail> get_data(){
+	ArrayList<Mail> get_data(){
 		try{
 			run();
 		} catch (IOException e) {}
@@ -166,7 +209,7 @@ public class Find {
 	    
 	    
 	//otrzymanie danych o wzorcowniu
-	private static void run() throws IOException{
+	private void run() throws IOException{
 		getFormat("");
 		mailData();
 		findClientData();

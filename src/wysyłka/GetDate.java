@@ -1,4 +1,4 @@
-package wysy≥ka;
+package wysy≈Çka;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -48,8 +48,4 @@ public class GetDate {
 	static String sheetName(){
 		return sheetName;
 	}
-	 public static void main(String[] args) {
-		 System.out.println(findDate(""));
-		 
-	 }
 }
