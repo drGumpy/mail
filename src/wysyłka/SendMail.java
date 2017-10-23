@@ -7,9 +7,9 @@ public class SendMail {
 	
 
    public static void send(String to, String text) {
-      String from = "laboratorium@mera-sp.com.pl";
+      String from = "*****";
 
-      String host = "mera.home.pl";
+      String host = "*****";
 
       Properties properties = System.getProperties();
 
@@ -18,8 +18,8 @@ public class SendMail {
       properties.put("mail.smtp.starttls.enable", "true");
       properties.put("mail.smtp.port", "587");
 
-      final String username = "laboratorium@mera-sp.com.pl";
-      final String password = "%*U&es0Jp@KI";
+      final String username = "*****";
+      final String password = "*****";
       
       Session session = Session.getInstance(properties,
     	         new javax.mail.Authenticator() {
