@@ -7,9 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -25,57 +22,66 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 public class Generate extends JFrame {
-	private static String path= "C:/Users/Laboratorium/Desktop/test/";
+	private static final long serialVersionUID = 1L;
+
 	private static String mailText=""; 
 	
 	private static JTextField filePath = new JTextField(50);
 	
-	private static boolean test = false;
+	private static SendMail sender;
+	
+	private static boolean test = true;
 	
 	static void txt(Mail info){
 		String device="";
 		for(int i=0; i<info.devices.size() ; i++){
-			device+=info.devices.get(i)+"\n";
+			device+=info.devices.get(i)+"<br\\>";
 		}
-		if(mailText.equals("")){
-			try{		
-				PrintWriter writer = new PrintWriter(path+info.user.name+".txt", "UTF-8");
-				writer.println(info.user);
-				writer.println("mail " + info.user.mail);
-				writer.println("");
-				writer.println("<teść maila>");
-				writer.println("");
-				writer.println("wzorcowali Państwo u nas następujące przyrządy:");
-				writer.print(device);
-				writer.close();
-			} catch (IOException e) {}
-		}
-		else{
-			String mail= mailText.replaceAll("<Urządzenia>", device);
-			if(test)
-				SendMail.send(info.user.mail, mail);
-			else
-				SendMail.send("", mail);
-		/*	
-			try {
-				PrintWriter writer = new PrintWriter(path+info.user.name+".txt", "UTF-8");
-				writer.print(mail);
-				writer.close();
-			} catch (FileNotFoundException | UnsupportedEncodingException e) {}*/
+		String mail= mailText.replaceAll("<Urządzenia>", device);
+		if(!test)
+			sender.send(info.user.mail, mail);
+		else
+			sender.send(MailData.getFrom(), mail);
+	}
+	
+	private static String gethtml(){
+		String html="";
+		try {
+			Scanner scan = new Scanner(new File("C:\\Users\\Laboratorium\\Documents\\Przypominanie e-mail\\pap.html"));
+			while(scan.hasNextLine()){
+				html+= scan.nextLine();
+			}
+			scan.close();
+			return html;
+		} catch (FileNotFoundException e) {
+			JOptionPane.showMessageDialog(null,
+				"Brak szablonu w żądanej lokalizacji",
+				"Brak szablonu",
+				JOptionPane.ERROR_MESSAGE);
+			return "";
 		}
 	}
 	
-	private static void getMailText(){
-		try {
-			Scanner scan = new Scanner(new File("C:\\Users\\Laboratorium\\Desktop\\test\\Szablon.txt"));
+	private static void getMailText() throws Exception{
+		try {	
+			Scanner scan = new Scanner(
+					new File("C:\\Users\\Laboratorium\\Documents\\Przypominanie e-mail\\Szablon.txt"), "UTF-8");
 			mailText="";
 			while(scan.hasNextLine())
-				mailText+=scan.nextLine();
+				mailText+=scan.nextLine()+"<br\\>";
+			scan.close();
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(null,
-        		    "Brak szablonu w podanej lokalizacji",
+        		    "Brak szablonu w żądanej lokalizacji",
         		    "Brak szablonu",
         		    JOptionPane.ERROR_MESSAGE);
+			throw new Exception();
+		}
+		String html = gethtml();
+		if(html.equals("")){
+			throw new Exception();
+		}else{
+			mailText= html.replaceAll("<mail>", mailText);
 		}
 	}
 	
@@ -118,8 +124,8 @@ public class Generate extends JFrame {
 		for(int i=0; i<data.size(); i++){
 			if(data.get(i).user.mail.equals("")){
 				errors.add(data.get(i).user.name+": brak adresu eMail");
-				data.remove(i);
-				i--;
+				//data.remove(i);
+				//i--;
 				continue;
 			}
 			String error = MailVerificate.mailCheck(data.get(i).user.mail);
@@ -158,11 +164,21 @@ public class Generate extends JFrame {
 		} catch (Exception e) {
 			return;
 		}
-		System.out.println("Start");
-		getMailText();
+		try {
+			getMailText();
+		} catch (Exception e) {
+			return;
+		}
+		sender= new SendMail(MailData.getProperties(), MailData.getUsername(),
+				MailData.getPassword(), MailData.getFrom());
 		for(int i=0; i<data.size(); i++){
 			txt(data.get(i));
 		}
+		System.out.println(mailText);
+		JOptionPane.showMessageDialog(null,
+    		    "Wysyłka wykonana",
+    		    "Mail",
+    		    JOptionPane.ERROR_MESSAGE);
 		this.dispose();
 	}
 	

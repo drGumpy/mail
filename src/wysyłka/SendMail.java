@@ -4,27 +4,25 @@ import javax.mail.*;
 import javax.mail.internet.*;
 
 public class SendMail {
+	private final String username ;
+	private final String password;
+	private String from;
+	private static Properties properties;
 	
+	SendMail(Properties _properties, String _username,
+			String _password,String _from){
+		properties= _properties;
+		username=_username;
+		password=_password;
+		from=_from;
+	}
 
-   public static void send(String to, String text) {
-      String from = "laboratorium@mera-sp.com.pl";
-
-      String host = "mera.home.pl";
-
-      Properties properties = System.getProperties();
-
-      properties.setProperty("mail.smtp.host", host);
-      properties.put("mail.smtp.auth", "true");
-      properties.put("mail.smtp.starttls.enable", "true");
-      properties.put("mail.smtp.port", "587");
-
-      final String username = "laboratorium@mera-sp.com.pl";
-      final String password = "%*U&es0Jp@KI";
-      
-      Session session = Session.getInstance(properties,
-    	         new javax.mail.Authenticator() {
-    	            protected PasswordAuthentication getPasswordAuthentication() {
-    	               return new PasswordAuthentication(username, password);
+	void send(String to, String text) {
+		
+		Session session = Session.getInstance(properties,
+				new javax.mail.Authenticator() {
+					protected PasswordAuthentication getPasswordAuthentication() {
+						return new PasswordAuthentication(username, password);
     		   }
       });
       
@@ -37,7 +35,7 @@ public class SendMail {
 
          message.setSubject("Przypomnienie o wzorcowaniu MERA Sp. z o.o.");
 
-         message.setText(text);
+         message.setText(text, "utf-8", "html");
 
          Transport.send(message);
       }catch (MessagingException mex) {

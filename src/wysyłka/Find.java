@@ -56,7 +56,7 @@ public class Find {
 		this.file=file;
 	}
 	
-	private static File file= 
+	private File file= 
 			new File("C:\\Users\\Laboratorium\\Desktop\\Laboratorium.ods");
 	    
 	//Spis nie wystawionych certyfikatów wzorcowania
@@ -203,7 +203,7 @@ public class Find {
 		return data;
 	}
 	
-	static void set_file(File _file){
+	void set_file(File _file){
 		file=_file;
 	}
 	    

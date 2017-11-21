@@ -18,6 +18,7 @@ public class MailVerificate {
 	}
 	
 	private static void domian(ArrayList<String> data, String domian){
+		domian= domian.replaceAll("\\+", "");
 		char[] characters = domian.toCharArray();
 		for(int i=0; i<characters.length; i++){
 			if(!domianAllowed.contains(characters[i])){
@@ -39,6 +40,7 @@ public class MailVerificate {
 	}
 	
 	private static void local(ArrayList<String> data, String local){
+		local= local.replaceAll("\\+", "");
 		char[] characters = local.toCharArray();
 		for(int i=0; i<characters.length; i++){
 			if(!localAllowed.contains(characters[i]))
@@ -102,7 +104,10 @@ public class MailVerificate {
 	
 	static String mailCheck(String mail){
 		ArrayList<String> data = new ArrayList<String>();
-		String[] separate = mail.split("@");
+		String[] separate = mail.split("\\s+");
+		if(separate.length>1)
+			return "mail zawiera spacje";
+		separate = mail.split("@");
 		if(separate.length!=2)
 			return "zły format (nieprawiłowa ilość znaków @)";
 		domian(data, separate[1]);
