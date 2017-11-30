@@ -32,11 +32,28 @@ public class Generate extends JFrame {
 	
 	private static boolean test = true;
 	
+	static String deviceTable(DeviceData data) {
+		String row= "<tr>";
+		row+= "    <td>"+data.device.model+"</td>";
+		row+= "    <td>"+data.device.producent+"</td>";
+		row+= "    <td>"+data.deviceSerial+"</td>";
+		row+= "    <td>"+data.calibrationDate+"</td>";
+		return row;
+	}
+	
 	static void txt(Mail info){
-		String device="";
+		String device="<table style=\"width:100%\">"
+				+ "<tr>" + 
+				"    <td>Model</td>" + 
+				"    <td>Producent</td>" + 
+				"    <td>Numer seryjny</td>" +
+				"    <td>Data wzorcowania</td>" +
+				"  </tr>";
 		for(int i=0; i<info.devices.size() ; i++){
-			device+=info.devices.get(i)+"<br\\>";
+			device+=deviceTable(info.devices.get(i));
+					//info.devices.get(i)+"<br\\>";
 		}
+		device+="</table>";
 		String mail= mailText.replaceAll("<Urządzenia>", device);
 		if(!test)
 			sender.send(info.user.mail, mail);
